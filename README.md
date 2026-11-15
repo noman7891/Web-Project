@@ -130,13 +130,16 @@ Create `.env` in `server/` (copy from `server/.env.example`):
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/campusconnect?retryWrites=true&w=majority
-JWT_SECRET=campusconnect_development_secret_jwt_key_2026_dbs
+MONGODB_URI=mongodb+srv://<db_username>:<db_password>@<cluster-host>/campusconnect?retryWrites=true&w=majority
+MONGODB_DB_NAME=campusconnect
+JWT_SECRET=<generate-a-unique-secret-of-at-least-32-characters>
 JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=1000
 ```
+
+For deployment, set `NODE_ENV=production` and provide `PORT`, `MONGODB_URI`, `MONGODB_DB_NAME`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_URL`, `RATE_LIMIT_WINDOW_MS`, and `RATE_LIMIT_MAX`. Set `MONGODB_DB_NAME` to `campusconnect`; use a URI and JWT secret containing deployment-specific values, and never commit or log them. Production startup rejects missing or invalid settings.
 
 ### 3. Seed Realistic University Demo Data
 Populate the database with Dublin Business School test accounts and sample listings:

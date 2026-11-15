@@ -2,17 +2,8 @@ import mongoose from 'mongoose'
 import { config } from './env'
 import { logger } from '../utils/logger'
 
-/**
- * Safely masks username/password in MongoDB connection URIs to prevent credential leakage in logs
- */
-export const maskMongoUri = (uri: string): string => {
-  return uri.replace(/\/\/(.*?):(.*?)@/, '//$1:********@')
-}
-
-// Lifecycle event listeners for robust cloud connectivity
 mongoose.connection.on('error', (err) => {
-  const errMsg = err instanceof Error ? err.message : String(err)
-  logger.error('MongoDB runtime connection error:', errMsg)
+  logger.error(`MongoDB runtime connection error (${err.name || 'unknown error'}).`)
 })
 
 mongoose.connection.on('disconnected', () => {
@@ -27,19 +18,14 @@ export const connectDB = async (uri?: string): Promise<typeof mongoose> => {
   const connectionUri = uri || config.mongodbUri
   try {
     const conn = await mongoose.connect(connectionUri, {
+      dbName: config.mongodbDbName,
       serverSelectionTimeoutMS: 8000, // Fail fast if cluster is unreachable
     })
-    logger.info(`MongoDB Connected: ${conn.connection.host}`)
+    logger.info(`MongoDB connected to database ${config.mongodbDbName}.`)
     return conn
   } catch (error) {
-    const safeErrorMsg = error instanceof Error ? error.message : String(error)
-    logger.error('Error connecting to MongoDB:', safeErrorMsg)
-    logger.warn(
-      `Notice: Failed to connect using URI target: ${maskMongoUri(connectionUri)}. Please verify MONGODB_URI in server/.env or cloud environment (see docs/atlas-setup-guide.md).`
-    )
-    if (config.nodeEnv === 'production') {
-      process.exit(1)
-    }
+    const errorName = error instanceof Error ? error.name : 'unknown error'
+    logger.error(`MongoDB connection failed (${errorName}). Check the Atlas network access list and database-user settings.`)
     throw error
   }
 }

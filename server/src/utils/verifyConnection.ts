@@ -1,17 +1,15 @@
 import mongoose from 'mongoose'
 import { config } from '../config/env'
-import { maskMongoUri } from '../config/db'
 import { logger } from './logger'
 
 export const verifyMongoConnection = async (): Promise<boolean> => {
   const rawUri = config.mongodbUri
-  const safeUri = maskMongoUri(rawUri)
 
   console.log('\n========================================================')
   console.log(' CampusConnect — MongoDB Connectivity Diagnostic Tool ')
   console.log('========================================================')
   console.log(`Environment Target : ${config.nodeEnv}`)
-  console.log(`Configured URI     : ${safeUri}`)
+  console.log(`Configured database: ${config.mongodbDbName}`)
 
   if (!rawUri || rawUri.includes('localhost') || rawUri.includes('127.0.0.1')) {
     console.log('\n[DIAGNOSTIC NOTICE]')
@@ -25,11 +23,11 @@ export const verifyMongoConnection = async (): Promise<boolean> => {
   try {
     console.log('[PROBING] Attempting connection to MongoDB cluster (timeout: 8s)...')
     const conn = await mongoose.connect(rawUri, {
+      dbName: config.mongodbDbName,
       serverSelectionTimeoutMS: 8000,
     })
 
-    console.log('[SUCCESS] TCP connection established!')
-    console.log(`Cluster Host       : ${conn.connection.host}`)
+    console.log('[SUCCESS] MongoDB connection established!')
     console.log(`Database Name      : ${conn.connection.name}`)
 
     // Test ping
@@ -55,24 +53,23 @@ export const verifyMongoConnection = async (): Promise<boolean> => {
   } catch (error: any) {
     console.error('\n[CONNECTION FAILURE]')
     console.error(`Error Code / Name : ${error.name || 'UnknownError'}`)
-    console.error(`Failure Message   : ${error.message || String(error)}`)
 
     console.log('\n[TROUBLESHOOTING CHECKLIST]')
-    if (error.message?.includes('bad auth') || error.message?.includes('Authentication failed')) {
+    const errorMessage = error.message || ''
+    if (errorMessage.includes('bad auth') || errorMessage.includes('Authentication failed')) {
       console.log('-> Issue: Bad username or password in MONGODB_URI.')
-      console.log('   Fix  : Check Database Access in MongoDB Atlas. If your password has special')
-      console.log('          characters (@, :, /, #), ensure they are URL-encoded.')
+      console.log('   Fix  : Check the Atlas database-user configuration and encoded credentials.')
     } else if (
-      error.message?.includes('ETIMEDOUT') ||
-      error.message?.includes('Server selection timed out') ||
+      errorMessage.includes('ETIMEDOUT') ||
+      errorMessage.includes('Server selection timed out') ||
       error.name === 'MongooseServerSelectionError'
     ) {
       console.log('-> Issue: Network access blocked or cluster unreachable.')
-      console.log('   Fix 1: Go to MongoDB Atlas > Network Access > Add IP Address > 0.0.0.0/0')
-      console.log('   Fix 2: Check if your local internet or firewall blocks outbound port 27017.')
-    } else if (error.message?.includes('ENOTFOUND') || error.message?.includes('querySrv')) {
+      console.log('   Fix 1: Check the Atlas Network Access IP access list.')
+      console.log('   Fix 2: Check outbound connectivity to Atlas on port 27017.')
+    } else if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('querySrv')) {
       console.log('-> Issue: DNS lookup failed for cluster hostname.')
-      console.log('   Fix  : Check cluster URL spelling in your MONGODB_URI connection string.')
+      console.log('   Fix  : Verify the Atlas cluster URI in the deployment environment.')
     } else {
       console.log('-> Fix: Refer to docs/atlas-setup-guide.md for detailed resolution steps.')
     }

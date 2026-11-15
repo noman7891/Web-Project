@@ -1,6 +1,6 @@
 import { createApp } from './app'
 import { connectDB, disconnectDB } from './config/db'
-import { config } from './config/env'
+import { config, ConfigurationError } from './config/env'
 import { logger } from './utils/logger'
 
 const startServer = async () => {
@@ -39,7 +39,11 @@ const startServer = async () => {
     process.on('SIGTERM', () => shutdown('SIGTERM'))
     process.on('SIGINT', () => shutdown('SIGINT'))
   } catch (error) {
-    logger.error('Failed to start server:', error)
+    if (error instanceof ConfigurationError) {
+      logger.error(error.message)
+    } else {
+      logger.error('Failed to start server. Check the database connection and application configuration.')
+    }
     process.exit(1)
   }
 }
