@@ -42,7 +42,7 @@ export const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-900 via-slate-900 to-slate-950 text-white py-20 lg:py-28 px-4 sm:px-6 lg:px-8 rounded-b-[2.5rem] shadow-2xl">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]" />
-        
+
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5 text-brand-300" />
@@ -73,7 +73,7 @@ export const LandingPage: React.FC = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-slate-800/80 text-white border-slate-700 hover:bg-slate-800"
+                className="bg-slate-800/80 text-black border-slate-700 hover:bg-slate-800 hover:text-white"
                 leftIcon={<PlusCircle className="w-5 h-5 text-emerald-400" />}
               >
                 Report Lost or Found Item
